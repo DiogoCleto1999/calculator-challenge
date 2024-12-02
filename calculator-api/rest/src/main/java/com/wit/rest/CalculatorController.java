@@ -5,7 +5,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.math.BigDecimal;
 
 @CrossOrigin(origins = "http://localhost:3000")
@@ -19,40 +18,67 @@ public class CalculatorController {
     }
 
     @GetMapping("/add")
-    public ResponseEntity<BigDecimal> add(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        BigDecimal result = sendToQueue("add", a, b);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    public ResponseEntity<Result> add(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
+        try {
+            Object result = sendToQueue("add", a, b);
+            return new ResponseEntity<>(new Result(result), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Result(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/subtract")
-    public ResponseEntity<BigDecimal> subtract(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        BigDecimal result = sendToQueue("subtract", a, b);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    public ResponseEntity<Result> subtract(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
+        try {
+            Object result = sendToQueue("subtract", a, b);
+            return new ResponseEntity<>(new Result(result), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Result(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/multiply")
-    public ResponseEntity<BigDecimal> multiply(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
-        BigDecimal result = sendToQueue("multiply", a, b);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    public ResponseEntity<Result> multiply(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
+        try {
+            Object result = sendToQueue("multiply", a, b);
+            return new ResponseEntity<>(new Result(result), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Result(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/divide")
-    public ResponseEntity<BigDecimal> divide(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
+    public ResponseEntity<Result> divide(@RequestParam BigDecimal a, @RequestParam BigDecimal b) {
         if (b.compareTo(BigDecimal.ZERO) == 0) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Divisão por zero
+            return new ResponseEntity<>(new Result("Error: Division by zero is not allowed."), HttpStatus.BAD_REQUEST);
         }
-        BigDecimal result = sendToQueue("divide", a, b);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        try {
+            Object result = sendToQueue("divide", a, b);
+            return new ResponseEntity<>(new Result(result), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new Result(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    private BigDecimal sendToQueue(String operation, BigDecimal a, BigDecimal b) {
-        // Obter o Request ID do MDC
+    private Object sendToQueue(String operation, BigDecimal a, BigDecimal b) {
         String requestId = MDC.get("requestId");
-
-        // Construir o payload com o Request ID
+    
         String request = requestId + "," + operation + "," + a + "," + b;
-
-        // Enviar a mensagem para a fila e esperar a resposta
-        return (BigDecimal) rabbitTemplate.convertSendAndReceive("calculatorQueue", request);
+    
+        Object response = rabbitTemplate.convertSendAndReceive("calculatorQueue", request);
+    
+        if (response == null) {
+            return "Error: No response from calculator service.";
+        }
+    
+        if (response instanceof String) {
+            try {
+                return new BigDecimal((String) response);
+            } catch (NumberFormatException e) {
+                return "Error: No response from calculator service.";
+            }
+        }
+        return "Unexpected response type from calculator service.";
     }
+    
 }

@@ -19,7 +19,7 @@ const Calculator = () => {
         }
       );
       console.log("response", response.data);
-      setResult(response.data); // Atualiza o resultado com o valor retornado
+      setResult(response.data.result); // Atualiza o resultado com o valor retornado
     } catch (err) {
       setError(err.response?.data?.message || "Erro ao calcular");
     }
@@ -27,17 +27,17 @@ const Calculator = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h1>Calculadora</h1>
+      <h1>Calculator</h1>
       <div>
         <input
           type="number"
-          placeholder="Número A"
+          placeholder="Value A"
           value={a}
           onChange={(e) => setA(e.target.value)}
         />
         <input
           type="number"
-          placeholder="Número B"
+          placeholder="Value B"
           value={b}
           onChange={(e) => setB(e.target.value)}
         />
@@ -47,15 +47,15 @@ const Calculator = () => {
           value={operation}
           onChange={(e) => setOperation(e.target.value)}
         >
-          <option value="add">Soma</option>
-          <option value="subtract">Subtração</option>
-          <option value="multiply">Multiplicação</option>
-          <option value="divide">Divisão</option>
+          <option value="add">Add</option>
+          <option value="subtract">Subtract</option>
+          <option value="multiply">Multiply</option>
+          <option value="divide">Divide</option>
         </select>
       </div>
-      <button onClick={handleCalculate}>Calcular</button>
+      <button onClick={handleCalculate}>Calculate</button>
       <div>
-        {result !== null && <h2>Resultado: {result}</h2>}
+        {result !== null && <h2>Result: {result}</h2>}
         {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
     </div>

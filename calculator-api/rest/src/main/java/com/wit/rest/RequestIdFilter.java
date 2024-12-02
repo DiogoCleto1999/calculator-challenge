@@ -24,20 +24,18 @@ public class RequestIdFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Gerar ou reutilizar o Request ID
         String requestId = httpRequest.getHeader(REQUEST_ID_HEADER);
         if (requestId == null || requestId.isEmpty()) {
             requestId = UUID.randomUUID().toString();
         }
 
-        // Adicionar Request ID ao MDC e cabeçalho da resposta
         MDC.put("requestId", requestId);
         httpResponse.setHeader(REQUEST_ID_HEADER, requestId);
 
         try {
             chain.doFilter(request, response);
         } finally {
-            MDC.clear(); // Limpar o MDC ao final da requisição
+            MDC.clear(); 
         }
     }
 

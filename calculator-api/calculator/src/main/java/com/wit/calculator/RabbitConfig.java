@@ -9,6 +9,6 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitConfig {
     @Bean
     public Queue calculatorQueue() {
-        return new Queue("calculatorQueue");  // Cria a fila "calculatorQueue"
+        return new Queue("calculatorQueue");
     }
 }
